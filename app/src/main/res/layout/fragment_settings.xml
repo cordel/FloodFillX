@@ -25,7 +25,7 @@
             android:id="@+id/widthEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
+            android:inputType="numberSigned"
             android:lines="1" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -45,7 +45,7 @@
             android:id="@+id/heightEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
+            android:inputType="numberSigned"
             android:lines="1" />
     </com.google.android.material.textfield.TextInputLayout>
 

@@ -17,7 +17,7 @@ class SettingsFragment : DialogFragment() {
     private lateinit var settingsStore: SettingsStore
     private val listener
         get() = activity as Listener
-    
+
     private var settingsUpdated = false
 
     override fun onAttach(context: Context) {
@@ -50,63 +50,52 @@ class SettingsFragment : DialogFragment() {
         with(dialog) {
             widthEditText.setText(settingsStore.userSettings.width.toString())
             heightEditText.setText(settingsStore.userSettings.height.toString())
-            fab.setOnClickListener {
-                settingsStore.updateSettings { copy(width = widthEditText.text.toString().toInt()) }
-                settingsStore.updateSettings { copy(height = heightEditText.text.toString().toInt()) }
-                settingsUpdated = true
-                this@SettingsFragment.dismiss()
-            }
+            fab.setOnClickListener { onConfirmClick() }
         }
     }
 
     override fun onDetach() {
         super.onDetach()
-        
+
         if (settingsUpdated) {
             listener.onSettingsUpdated()
         } else {
-            listener.onSettingsNotUpdated()    
-        } 
+            listener.onSettingsNotUpdated()
+        }
+    }
+
+    private fun onConfirmClick() {
+        dialog?.let { dialog ->
+            val width = dialog.widthEditText.text.toString().toIntOrNull()
+            val height = dialog.heightEditText.text.toString().toIntOrNull()
+
+            val widthValidationResult = validateInput(width)
+            val heightValidationResult = validateInput(height)
+
+            if (widthValidationResult == ValidationResult.OK && heightValidationResult == ValidationResult.OK) {
+                settingsStore.updateSettings { copy(width = width!!) }
+                settingsStore.updateSettings { copy(height = height!!) }
+                settingsUpdated = true
+
+                return this@SettingsFragment.dismiss()
+            }
+
+            dialog.widthPicker.error = widthValidationResult.let { it as? ValidationResult.Error }
+                ?.errorText?.let(::getString)
+
+            dialog.heightPicker.error = heightValidationResult.let { it as? ValidationResult.Error }
+                ?.errorText?.let(::getString)
+        }
+    }
+
+    private fun validateInput(input: Int?) = when {
+        input == null -> ValidationResult.Error(R.string.error_invalid_value)
+        input < 1 -> ValidationResult.Error(R.string.error_small_value)
+        else -> ValidationResult.OK
     }
 
     interface Listener {
         fun onSettingsUpdated()
         fun onSettingsNotUpdated()
     }
-
-//    private fun onHeightChanged(): TextWatcher {
-//        return object : TextWatcher {
-//            override fun afterTextChanged(s: Editable?) {
-//                val intValue = try {
-//                    s.toString().toInt()
-//                } catch (e: NumberFormatException) {
-//                    heightPicker.error = getString(R.string.error_invalid_value)
-//                    return
-//                }
-//
-//                when {
-//                    intValue == 0 -> {
-//                        heightPicker.error = getString(R.string.error_small_value)
-//                    }
-//                    intValue == settingsStore.userSettings.height -> {
-//                        heightPicker.error = null
-//                    }
-//                    intValue > 512 -> {
-//                        heightPicker.error = getString(R.string.error_big_value)
-//                    }
-//                    else -> {
-//                        settingsStore.updateSettings { copy(height = intValue) }
-//                        refresh(settingsStore.userSettings.width, settingsStore.userSettings.height)
-//                        heightPicker.error = null
-//                    }
-//                }
-//            }
-//
-//            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-//            }
-//            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-//            }
-//        }
-//    }
-
 }

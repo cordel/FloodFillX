@@ -3,7 +3,6 @@
     <string name="title_refresh">Refresh</string>
     <string name="title_width">Width</string>
     <string name="title_height">Height</string>
-    <string name="error_invalid_value">Should be integer</string>
-    <string name="error_big_value">Should be less</string>
-    <string name="error_small_value">Should be bigger</string>
+    <string name="error_invalid_value">Should be an integer</string>
+    <string name="error_small_value">Should be greater than zero</string>
 </resources>
