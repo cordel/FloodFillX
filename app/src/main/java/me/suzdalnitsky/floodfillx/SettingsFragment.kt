@@ -17,6 +17,8 @@ class SettingsFragment : DialogFragment() {
     private lateinit var settingsStore: SettingsStore
     private val listener
         get() = activity as Listener
+    
+    private var settingsUpdated = false
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -51,14 +53,25 @@ class SettingsFragment : DialogFragment() {
             fab.setOnClickListener {
                 settingsStore.updateSettings { copy(width = widthEditText.text.toString().toInt()) }
                 settingsStore.updateSettings { copy(height = heightEditText.text.toString().toInt()) }
-                listener.onSettingsUpdated()
-                dismiss()
+                settingsUpdated = true
+                this@SettingsFragment.dismiss()
             }
         }
     }
 
+    override fun onDetach() {
+        super.onDetach()
+        
+        if (settingsUpdated) {
+            listener.onSettingsUpdated()
+        } else {
+            listener.onSettingsNotUpdated()    
+        } 
+    }
+
     interface Listener {
         fun onSettingsUpdated()
+        fun onSettingsNotUpdated()
     }
 
 //    private fun onHeightChanged(): TextWatcher {

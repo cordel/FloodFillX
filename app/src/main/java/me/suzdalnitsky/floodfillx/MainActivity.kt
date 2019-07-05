@@ -50,6 +50,7 @@ class MainActivity : AppCompatActivity(), SettingsFragment.Listener {
     }
 
     override fun onSettingsUpdated() = refresh()
+    override fun onSettingsNotUpdated() = resumeAlgorithm()
 
     private fun refresh() = with(settingsStore.userSettings) {
         disposable?.dispose()
