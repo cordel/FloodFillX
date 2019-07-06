@@ -13,7 +13,7 @@ object StaticStore {
     fun assureInit(width: Int, height: Int) {
         if (isInit) return
 
-        points = randomizePoints(width = width, height = height)
+        points = PointRandomizer.randomizePoints(width = width, height = height)
         isInit = true
     }
 }

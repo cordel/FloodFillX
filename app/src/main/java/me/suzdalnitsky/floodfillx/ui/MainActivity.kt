@@ -1,16 +1,19 @@
-package me.suzdalnitsky.floodfillx
+package me.suzdalnitsky.floodfillx.ui
 
 import android.graphics.Point
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Lifecycle
 import com.jakewharton.rxbinding2.widget.RxSeekBar
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
+import me.suzdalnitsky.floodfillx.PointRandomizer
+import me.suzdalnitsky.floodfillx.R
+import me.suzdalnitsky.floodfillx.StaticStore
 import me.suzdalnitsky.floodfillx.algorithm.BfsAlgorithm
+import me.suzdalnitsky.floodfillx.invokeIfResumed
+import me.suzdalnitsky.floodfillx.log
 import me.suzdalnitsky.floodfillx.persistance.SettingsStore
 import me.suzdalnitsky.floodfillx.persistance.UserSettings
 import java.util.concurrent.TimeUnit
@@ -23,19 +26,14 @@ class MainActivity : AppCompatActivity(), SettingsFragment.Listener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         settingsStore = SettingsStore(applicationContext)
+        initViews()
+    }
+
+    private fun initViews() {
         applySettings(settingsStore.userSettings)
         pointsView.setOnPointClickListener(::startAlgorithm)
-
-        toolbar.setNavigationOnClickListener {
-            with(supportFragmentManager) {
-                if (findFragmentByTag(SETTINGS_FRAGMENT_KEY) == null) {
-                    pauseAlgorithm()
-                    SettingsFragment().showNow(this, SETTINGS_FRAGMENT_KEY)
-                }
-            }
-        }
+        toolbar.setNavigationOnClickListener { navigateToSettings() }
         refresh.setOnClickListener { refresh() }
     }
 
@@ -49,14 +47,35 @@ class MainActivity : AppCompatActivity(), SettingsFragment.Listener {
         super.onPause()
     }
 
-    override fun onSettingsUpdated() = refresh()
-    override fun onSettingsNotUpdated() = resumeAlgorithm()
+    private fun resumeAlgorithm() {
+        if (StaticStore.algorithm == null) return
+
+        var skipInitialDelay = true
+
+        RxSeekBar.changes(seekBar)
+            .map { 101L - it }
+            .switchMap { interval ->
+                Observable.interval(if (skipInitialDelay) 0L else interval, interval, TimeUnit.MILLISECONDS)
+                    .also { skipInitialDelay = false }
+            }
+            .map { StaticStore.algorithm!!.performStep() }
+            .takeWhile { it }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ pointsView.refresh() }, { log(it) })
+            .let { disposable = it }
+    }
+
+    private fun pauseAlgorithm() = disposable?.dispose()
+
+    override fun onSettingsUpdated() = invokeIfResumed(::refresh)
+    override fun onSettingsNotUpdated() = invokeIfResumed(::resumeAlgorithm)
 
     private fun refresh() = with(settingsStore.userSettings) {
         disposable?.dispose()
         StaticStore.algorithm = null
 
-        StaticStore.points = randomizePoints(width = width, height = height)
+        StaticStore.points =
+            PointRandomizer.randomizePoints(width = width, height = height)
         pointsView.init(width, height, StaticStore.points)
         pointsView.refresh()
     }
@@ -67,33 +86,18 @@ class MainActivity : AppCompatActivity(), SettingsFragment.Listener {
         resumeAlgorithm()
     }
 
-    private fun resumeAlgorithm() {
-        if (lifecycle.currentState != Lifecycle.State.RESUMED) return
-        if (StaticStore.algorithm == null) return
-
-        var isLaunching = true
-
-        RxSeekBar.changes(seekBar)
-            .map { 101L - it }
-            .switchMap { interval ->
-                Observable.interval(if (isLaunching) 0L else interval, interval, TimeUnit.MILLISECONDS)
-                    .also { isLaunching = false }
-            }
-            .observeOn(Schedulers.computation())
-            .map { StaticStore.algorithm!!.performStep() }
-            .takeWhile { it }
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ pointsView.refresh() }, { log(it) })
-            .let { disposable = it }
-    }
-
     private fun applySettings(settings: UserSettings) = with(settings) {
         StaticStore.assureInit(width, height)
         pointsView.init(width, height, StaticStore.points)
         seekBar.progress = speed
     }
 
-    private fun pauseAlgorithm() = disposable?.dispose()
+    private fun navigateToSettings() = with(supportFragmentManager) {
+        if (findFragmentByTag(SETTINGS_FRAGMENT_KEY) == null) {
+            pauseAlgorithm()
+            SettingsFragment().showNow(this, SETTINGS_FRAGMENT_KEY)
+        }
+    }
 
     companion object {
         private const val SETTINGS_FRAGMENT_KEY = "SETTINGS_FRAGMENT_KEY"

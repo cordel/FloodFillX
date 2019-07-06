@@ -2,22 +2,16 @@ package me.suzdalnitsky.floodfillx
 
 import android.graphics.Point
 import android.util.Log
-import kotlin.random.Random
-
-fun randomizePoints(width: Int, height: Int): MutableMap<Point, Boolean> {
-    val random = Random(System.currentTimeMillis())
-    val result = mutableMapOf<Point, Boolean>()
-
-    for (x in 0 until width) {
-        for (y in 0 until height) {
-            result[Point(x, y)] = random.nextBoolean()
-        }
-    }
-
-    return result
-}
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 
 inline fun consume(f: () -> Unit) = f().let { true }
+
+inline fun LifecycleOwner.invokeIfResumed(func: () -> Unit) {
+    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+        func.invoke()
+    }
+}
 
 fun log(throwable: Throwable) = Log.e("FloodFillX", throwable.message)
 

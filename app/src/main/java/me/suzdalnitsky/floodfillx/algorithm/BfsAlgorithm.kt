@@ -11,7 +11,7 @@ import java.util.LinkedList
 class BfsAlgorithm(
     private val points: MutableMap<Point, Boolean>,
     start: Point
-) : Algorithm(points, start) {
+) : Algorithm {
 
     private val queue = LinkedList<Point>().apply { push(start) }
     private val isInverse = !points.getValue(start)
@@ -32,7 +32,7 @@ class BfsAlgorithm(
     private fun tryToPush(point: Point) {
         if (queue.contains(point)) return
         val pointValue = points[point] ?: return
-        
+
         if (pointValue == !isInverse) queue.push(point)
     }
 }

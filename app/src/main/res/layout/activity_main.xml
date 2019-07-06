@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="MainActivity">
+    tools:context=".ui.MainActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBar"
@@ -21,7 +21,7 @@
             app:navigationIcon="@drawable/ic_menu" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <me.suzdalnitsky.floodfillx.PointsView
+    <me.suzdalnitsky.floodfillx.ui.common.PointsView
         android:id="@+id/pointsView"
         android:layout_width="0dp"
         android:layout_height="0dp"

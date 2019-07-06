@@ -1,22 +1,21 @@
-package me.suzdalnitsky.floodfillx
+package me.suzdalnitsky.floodfillx.ui
 
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
 import android.view.View
-import android.view.ViewGroup
-import android.view.Window
-import android.view.WindowManager
-import androidx.appcompat.app.AppCompatDialog
 import androidx.fragment.app.DialogFragment
 import kotlinx.android.synthetic.main.fragment_settings.*
+import me.suzdalnitsky.floodfillx.R
+import me.suzdalnitsky.floodfillx.ValidationResult
 import me.suzdalnitsky.floodfillx.persistance.SettingsStore
+import me.suzdalnitsky.floodfillx.ui.common.FullscreenDialog
 
 class SettingsFragment : DialogFragment() {
 
     private lateinit var settingsStore: SettingsStore
-    private val listener
-        get() = activity as Listener
+    private val listener: Listener?
+        get() = activity as? Listener
 
     private var settingsUpdated = false
 
@@ -26,22 +25,9 @@ class SettingsFragment : DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val dialog = object : AppCompatDialog(context, R.style.FullScreenDialogStyle) {
-
-            init {
-                supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
-            }
-
-            override fun onCreate(savedInstanceState: Bundle?) {
-                super.onCreate(savedInstanceState)
-                window?.apply {
-                    clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-                    addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-                    setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-                }
-            }
-        }
+        val dialog = FullscreenDialog(requireContext())
         val contentView = View.inflate(requireContext(), R.layout.fragment_settings, null)
+        
         return dialog.apply { setContentView(contentView) }
     }
 
@@ -57,10 +43,8 @@ class SettingsFragment : DialogFragment() {
     override fun onDetach() {
         super.onDetach()
 
-        if (settingsUpdated) {
-            listener.onSettingsUpdated()
-        } else {
-            listener.onSettingsNotUpdated()
+        listener?.run {
+            if (settingsUpdated) onSettingsUpdated() else onSettingsNotUpdated()
         }
     }
 

@@ -1,4 +1,4 @@
-package me.suzdalnitsky.floodfillx
+package me.suzdalnitsky.floodfillx.ui.common
 
 import android.content.Context
 import android.graphics.Canvas
@@ -8,9 +8,13 @@ import android.graphics.Point
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import me.suzdalnitsky.floodfillx.consume
 
 class PointsView : View {
 
+    /**
+     * Avoid @JvmOverloads constructor https://bit.ly/2XuwKal
+     */
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
@@ -38,13 +42,13 @@ class PointsView : View {
         val stepX = stepX
         val stepY = stepY
 
-        points!!.forEach { (key, value) ->
-            if (value) {
+        points!!.forEach { (point, isFilled) ->
+            if (isFilled) {
                 canvas.drawRect(
-                    key.x * stepX,
-                    key.y * stepY,
-                    key.x.inc() * stepX,
-                    key.y.inc() * stepY,
+                    point.x * stepX,
+                    point.y * stepY,
+                    point.x.inc() * stepX,
+                    point.y.inc() * stepY,
                     paint
                 )
             }
@@ -67,7 +71,6 @@ class PointsView : View {
             (event.y / stepY).toInt()
         )
 
-        listener(point)
-        true
+        consume { listener(point) }
     }
 }
