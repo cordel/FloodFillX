@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity(), SettingsFragment.Listener {
         var skipInitialDelay = true
 
         RxSeekBar.changes(seekBar)
+            .debounce(100L, TimeUnit.MILLISECONDS)
             .map { 101L - it }
             .switchMap { interval ->
                 Observable.interval(if (skipInitialDelay) 0L else interval, interval, TimeUnit.MILLISECONDS)
