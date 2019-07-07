@@ -5,4 +5,6 @@
     <string name="title_height">Height</string>
     <string name="error_invalid_value">Should be an integer</string>
     <string name="error_small_value">Should be greater than zero</string>
+    <string name="title_algorithm_bfs">Breadth-first</string>
+    <string name="title_algorithm_dfs">Depth-first</string>
 </resources>

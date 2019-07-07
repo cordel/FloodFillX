@@ -2,6 +2,7 @@ package me.suzdalnitsky.floodfillx.ui
 
 import android.graphics.Point
 import android.os.Bundle
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.jakewharton.rxbinding2.widget.RxSeekBar
 import io.reactivex.Observable
@@ -12,6 +13,9 @@ import me.suzdalnitsky.floodfillx.PointRandomizer
 import me.suzdalnitsky.floodfillx.R
 import me.suzdalnitsky.floodfillx.StaticStore
 import me.suzdalnitsky.floodfillx.algorithm.BfsAlgorithm
+import me.suzdalnitsky.floodfillx.algorithm.DfsAlgorithm
+import me.suzdalnitsky.floodfillx.algorithm.SelectableAlgorithm
+import me.suzdalnitsky.floodfillx.consume
 import me.suzdalnitsky.floodfillx.invokeIfResumed
 import me.suzdalnitsky.floodfillx.log
 import me.suzdalnitsky.floodfillx.persistance.SettingsStore
@@ -33,8 +37,13 @@ class MainActivity : AppCompatActivity(), SettingsFragment.Listener {
     private fun initViews() {
         applySettings(settingsStore.userSettings)
         pointsView.setOnPointClickListener(::startAlgorithm)
-        toolbar.setNavigationOnClickListener { navigateToSettings() }
         refresh.setOnClickListener { refresh() }
+
+        with(toolbar) {
+            inflateMenu(R.menu.menu_algorithms)
+            setOnMenuItemClickListener(::onMenuItemSelected)
+            setNavigationOnClickListener { navigateToSettings() }
+        }
     }
 
     override fun onResume() {
@@ -44,6 +53,7 @@ class MainActivity : AppCompatActivity(), SettingsFragment.Listener {
 
     override fun onPause() {
         pauseAlgorithm()
+        saveSpeedSetting()
         super.onPause()
     }
 
@@ -67,6 +77,7 @@ class MainActivity : AppCompatActivity(), SettingsFragment.Listener {
     }
 
     private fun pauseAlgorithm() = disposable?.dispose()
+    private fun saveSpeedSetting() = settingsStore.updateSettings { copy(speed = seekBar.progress) }
 
     override fun onSettingsUpdated() = invokeIfResumed(::refresh)
     override fun onSettingsNotUpdated() = invokeIfResumed(::resumeAlgorithm)
@@ -75,20 +86,23 @@ class MainActivity : AppCompatActivity(), SettingsFragment.Listener {
         disposable?.dispose()
         StaticStore.algorithm = null
 
-        StaticStore.points =
-            PointRandomizer.randomizePoints(width = width, height = height)
+        StaticStore.points = PointRandomizer.randomizePoints(width = width, height = height)
         pointsView.init(width, height, StaticStore.points)
         pointsView.refresh()
     }
 
     private fun startAlgorithm(point: Point) {
         disposable?.dispose()
-        StaticStore.algorithm = BfsAlgorithm(StaticStore.points, point)
+        StaticStore.algorithm = when (settingsStore.userSettings.algorithm) {
+            SelectableAlgorithm.BFS -> BfsAlgorithm(StaticStore.points, point)
+            SelectableAlgorithm.DFS -> DfsAlgorithm(StaticStore.points, point)
+        }
         resumeAlgorithm()
     }
 
     private fun applySettings(settings: UserSettings) = with(settings) {
         StaticStore.assureInit(width, height)
+        toolbar.setTitle(algorithm.title)
         pointsView.init(width, height, StaticStore.points)
         seekBar.progress = speed
     }
@@ -98,6 +112,16 @@ class MainActivity : AppCompatActivity(), SettingsFragment.Listener {
             pauseAlgorithm()
             SettingsFragment().showNow(this, SETTINGS_FRAGMENT_KEY)
         }
+    }
+
+    private fun onMenuItemSelected(item: MenuItem) = consume {
+        val newAlgorithm = when (item.itemId) {
+            R.id.menu_bfs -> SelectableAlgorithm.BFS
+            R.id.menu_dfs -> SelectableAlgorithm.DFS
+            else -> error("Unreachable")
+        }
+        settingsStore.updateSettings { copy(algorithm = newAlgorithm) }
+        toolbar.setTitle(newAlgorithm.title)
     }
 
     companion object {
