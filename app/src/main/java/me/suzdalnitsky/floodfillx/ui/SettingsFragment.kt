@@ -37,6 +37,7 @@ class SettingsFragment : DialogFragment() {
             widthEditText.setText(settingsStore.userSettings.width.toString())
             heightEditText.setText(settingsStore.userSettings.height.toString())
             fab.setOnClickListener { onConfirmClick() }
+            back.setOnClickListener { this@SettingsFragment.dismiss() }
         }
     }
 
