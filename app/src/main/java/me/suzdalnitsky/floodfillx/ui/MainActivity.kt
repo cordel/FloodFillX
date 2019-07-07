@@ -14,7 +14,7 @@ import me.suzdalnitsky.floodfillx.R
 import me.suzdalnitsky.floodfillx.StaticStore
 import me.suzdalnitsky.floodfillx.algorithm.BfsAlgorithm
 import me.suzdalnitsky.floodfillx.algorithm.DfsAlgorithm
-import me.suzdalnitsky.floodfillx.algorithm.SelectableAlgorithm
+import me.suzdalnitsky.floodfillx.algorithm.RandomPickAlgorithm
 import me.suzdalnitsky.floodfillx.consume
 import me.suzdalnitsky.floodfillx.invokeIfResumed
 import me.suzdalnitsky.floodfillx.log
@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity(), SettingsFragment.Listener {
     }
 
     private fun initViews() {
-        applySettings(settingsStore.userSettings)
+        restoreSettings(settingsStore.userSettings)
         pointsView.setOnPointClickListener(::startAlgorithm)
         refresh.setOnClickListener { refresh() }
 
@@ -96,11 +96,12 @@ class MainActivity : AppCompatActivity(), SettingsFragment.Listener {
         StaticStore.algorithm = when (settingsStore.userSettings.algorithm) {
             SelectableAlgorithm.BFS -> BfsAlgorithm(StaticStore.points, point)
             SelectableAlgorithm.DFS -> DfsAlgorithm(StaticStore.points, point)
+            SelectableAlgorithm.RP -> RandomPickAlgorithm(StaticStore.points, point)
         }
         resumeAlgorithm()
     }
 
-    private fun applySettings(settings: UserSettings) = with(settings) {
+    private fun restoreSettings(settings: UserSettings) = with(settings) {
         StaticStore.assureInit(width, height)
         toolbar.setTitle(algorithm.title)
         pointsView.init(width, height, StaticStore.points)
@@ -118,6 +119,7 @@ class MainActivity : AppCompatActivity(), SettingsFragment.Listener {
         val newAlgorithm = when (item.itemId) {
             R.id.menu_bfs -> SelectableAlgorithm.BFS
             R.id.menu_dfs -> SelectableAlgorithm.DFS
+            R.id.menu_rp -> SelectableAlgorithm.RP
             else -> error("Unreachable")
         }
         settingsStore.updateSettings { copy(algorithm = newAlgorithm) }

@@ -10,4 +10,8 @@
         android:id="@+id/menu_dfs"
         android:title="@string/title_algorithm_dfs"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_rp"
+        android:title="@string/title_algorithm_rp"
+        app:showAsAction="never" />
 </menu>

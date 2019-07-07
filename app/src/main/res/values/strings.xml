@@ -7,4 +7,5 @@
     <string name="error_small_value">Should be greater than zero</string>
     <string name="title_algorithm_bfs">Breadth-first</string>
     <string name="title_algorithm_dfs">Depth-first</string>
+    <string name="title_algorithm_rp">Random pick</string>
 </resources>

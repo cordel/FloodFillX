@@ -1,6 +1,6 @@
 package me.suzdalnitsky.floodfillx.persistance
 
-import me.suzdalnitsky.floodfillx.algorithm.SelectableAlgorithm
+import me.suzdalnitsky.floodfillx.ui.SelectableAlgorithm
 
 data class UserSettings(
     val width: Int,
@@ -13,6 +13,6 @@ data class UserSettings(
         const val DEFAULT_WIDTH = 256
         const val DEFAULT_HEIGHT = 256
         const val DEFAULT_SPEED = 100
-        val DEFAULT_ALGORITHM_ORDINAL = SelectableAlgorithm.BFS.ordinal
+        val DEFAULT_ALGORITHM = SelectableAlgorithm.BFS
     }
 }

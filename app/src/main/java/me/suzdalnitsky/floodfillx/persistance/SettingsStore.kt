@@ -1,7 +1,7 @@
 package me.suzdalnitsky.floodfillx.persistance
 
 import android.content.Context
-import me.suzdalnitsky.floodfillx.algorithm.SelectableAlgorithm
+import me.suzdalnitsky.floodfillx.ui.SelectableAlgorithm
 
 class SettingsStore(context: Context) {
 
@@ -14,7 +14,7 @@ class SettingsStore(context: Context) {
             speed = prefs.getInt(KEY_SPEED, UserSettings.DEFAULT_SPEED),
             algorithm = prefs.getInt(
                 KEY_ALGORITHM,
-                UserSettings.DEFAULT_ALGORITHM_ORDINAL
+                UserSettings.DEFAULT_ALGORITHM.ordinal
             )
                 .let { SelectableAlgorithm.values()[it] }
         )
